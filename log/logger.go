@@ -1,11 +1,11 @@
 package log
 
 import (
+	"github.com/QWERKael/utility-go/path"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
 	"strings"
-	"utility-go/path"
 )
 
 type EncoderFormat uint8

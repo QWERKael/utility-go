@@ -2,8 +2,8 @@ package io
 
 import (
 	"errors"
+	"github.com/QWERKael/utility-go/path"
 	"io/ioutil"
-	"utility-go/path"
 )
 
 func ReadFile(filePath string) ([]byte, error) {

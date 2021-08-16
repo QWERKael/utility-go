@@ -1,4 +1,4 @@
-module utility-go
+module github.com/QWERKael/utility-go
 
 go 1.15
 

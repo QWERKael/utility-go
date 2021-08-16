@@ -1,8 +1,8 @@
 package config
 
 import (
+	"github.com/QWERKael/utility-go/io"
 	"gopkg.in/yaml.v2"
-	"utility-go/io"
 )
 
 func ParserFromByte(configText []byte, conf interface{}) error {
