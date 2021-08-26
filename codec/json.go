@@ -1,6 +1,7 @@
 package codec
 
 import (
+	"bufio"
 	path2 "github.com/QWERKael/utility-go/path"
 	jsonIter "github.com/json-iterator/go"
 	"io/ioutil"
@@ -29,4 +30,26 @@ func DecodeJsonFromFile(path string, v interface{}) error {
 		return err
 	}
 	return DecodeJson(b, v)
+}
+
+func EncodeJsonToFile(path string, v interface{}) error {
+	file, err := path2.CreateOrOpenFileForOverWrite(path)
+	if err != nil {
+		return err
+	}
+	bufWriter := bufio.NewWriter(file)
+	defer func() {
+		bufWriter.Flush()
+		file.Close()
+	}()
+	var b []byte
+	b, err = EncodeJson(v)
+	if err != nil {
+		return err
+	}
+	_, err = bufWriter.Write(b)
+	if err != nil {
+		return err
+	}
+	return nil
 }
