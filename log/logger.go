@@ -31,7 +31,7 @@ func NewLogger(encoderFormat EncoderFormat, logFilePath string, level zapcore.Le
 	if logFilePath == "" {
 		writeSyncer = zapcore.Lock(os.Stdout)
 	} else {
-		file, err := path.CheckAndOpenFile(logFilePath)
+		file, err := path.CreateOrOpenFileForAppendWrite(logFilePath)
 		if err != nil {
 			return nil, err
 		}

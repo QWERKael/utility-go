@@ -128,6 +128,22 @@ func CreateFileIfNotExist(path string) (*os.File, error) {
 //  @return error
 //
 func CreateOrOpenFileForOverWrite(path string) (*os.File, error) {
+	file, err := CreateOrOpenFileForWrite(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
+func CreateOrOpenFileForAppendWrite(path string) (*os.File, error) {
+	file, err := CreateOrOpenFileForWrite(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
+func CreateOrOpenFileForWrite(path string, flag int) (*os.File, error) {
 	ft, err := CheckPath(path)
 	if err != nil {
 		return nil, err
@@ -142,7 +158,7 @@ func CreateOrOpenFileForOverWrite(path string) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	file, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	file, err = os.OpenFile(path, flag, 0666)
 	if err != nil {
 		return nil, err
 	}
