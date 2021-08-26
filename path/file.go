@@ -43,14 +43,14 @@ func CheckPath(path string) (FileType, error) {
 	}
 }
 
-func CheckPathAs(path string, checkFt FileType) (bool, error) {
+func CheckPathAs(path string, checkFt FileType) bool {
 	if ft, err := CheckPath(path); err != nil {
-		return false, err
+		return false
 	} else {
 		if ft == checkFt {
-			return true, nil
+			return true
 		} else {
-			return false, nil
+			return false
 		}
 	}
 }
@@ -86,9 +86,7 @@ func CheckAndCreateDir(path string) error {
 //  @return error
 //
 func OpenFileIfExist(path string) (*os.File, error) {
-	if ok, err := CheckPathAs(path, File); err != nil {
-		return nil, err
-	} else if ok {
+	if ok := CheckPathAs(path, File); ok {
 		file, err := os.Open(path)
 		if err != nil {
 			return nil, err
@@ -107,9 +105,7 @@ func OpenFileIfExist(path string) (*os.File, error) {
 //  @return error
 //
 func CreateFileIfNotExist(path string) (*os.File, error) {
-	if ok, err := CheckPathAs(path, NotExist); err != nil {
-		return nil, err
-	} else if ok {
+	if ok := CheckPathAs(path, NotExist); ok {
 		file, err := os.Create(path)
 		if err != nil {
 			return nil, err
@@ -135,6 +131,13 @@ func CreateOrOpenFileForOverWrite(path string) (*os.File, error) {
 	return file, nil
 }
 
+//
+// CreateOrOpenFileForAppendWrite
+//  @Description: 创建或打开一个文件，用于追加写
+//  @param path
+//  @return *os.File
+//  @return error
+//
 func CreateOrOpenFileForAppendWrite(path string) (*os.File, error) {
 	file, err := CreateOrOpenFileForWrite(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND)
 	if err != nil {
@@ -143,6 +146,14 @@ func CreateOrOpenFileForAppendWrite(path string) (*os.File, error) {
 	return file, nil
 }
 
+//
+// CreateOrOpenFileForWrite
+//  @Description: 创建或打开一个文件，用于写入
+//  @param path
+//  @param flag
+//  @return *os.File
+//  @return error
+//
 func CreateOrOpenFileForWrite(path string, flag int) (*os.File, error) {
 	ft, err := CheckPath(path)
 	if err != nil {
@@ -163,6 +174,19 @@ func CreateOrOpenFileForWrite(path string, flag int) (*os.File, error) {
 		return nil, err
 	}
 	return file, nil
+}
+
+func RemoveFile(path string) error {
+	if ok := CheckPathAs(path, NotExist); ok {
+		return nil
+	}
+	if ok := CheckPathAs(path, File); ok {
+		if err := os.Remove(path); err != nil {
+			return err
+		}
+		return nil
+	}
+	return errors.New("要删除的路径不是一个文件！")
 }
 
 //
