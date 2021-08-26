@@ -121,26 +121,28 @@ func CreateFileIfNotExist(path string) (*os.File, error) {
 }
 
 //
-// CheckAndOpenFile
-//  @Description: 打开一个文件，如果文件存在就直接打开，如果不存在就创建然后打开
+// CreateOrOpenFileForOverWrite
+//  @Description: 创建或打开一个文件，用于覆盖写入
 //  @param path
 //  @return *os.File
 //  @return error
 //
-func CheckAndOpenFile(path string) (*os.File, error) {
+func CreateOrOpenFileForOverWrite(path string) (*os.File, error) {
 	ft, err := CheckPath(path)
 	if err != nil {
 		return nil, err
 	}
 	var file *os.File
 	switch ft {
-	case NotExist:
-		file, err = os.Create(path)
-	case File:
-		file, err = os.Open(path)
+	case Unknown:
+		err = errors.New("目标路径未识别")
 	case Dir:
 		err = errors.New("目标路径是一个目录")
 	}
+	if err != nil {
+		return nil, err
+	}
+	file, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		return nil, err
 	}
