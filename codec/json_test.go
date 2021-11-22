@@ -94,7 +94,7 @@ func TestGetJson(t *testing.T) {
 	v4 := jsonIter.Get([]byte(s), "location", "Country")
 	fmt.Printf("\n%#v\n", v4)
 	v5 := jsonIter.Get([]byte(s), "location", "Country", 0)
-	fmt.Printf("\n%#v\n", v5.)
+	fmt.Printf("\n%#v\n", v5)
 
 	v6 := jsonIter.Get([]byte(s), "name")
 	fmt.Printf("\n%s\n", v6.ToString())
