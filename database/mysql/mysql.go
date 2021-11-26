@@ -40,6 +40,7 @@ func (c *Connector) QueryAsMapList(sql string) ([]map[string]interface{}, error)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	var colNames []string
 	colNames, err = rows.Columns()
 	if err != nil {

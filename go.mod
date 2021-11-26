@@ -10,5 +10,6 @@ require (
 	github.com/lensesio/tableprinter v0.0.0-20201125135848-89e81fc956e7
 	github.com/mattn/go-runewidth v0.0.12 // indirect
 	go.uber.org/zap v1.16.0
+	golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529
 	gopkg.in/yaml.v2 v2.4.0
 )
