@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-func PostWithHeader(url string, msg []byte, headers map[string]string) ([]byte, error) {
+func PostWithHeader(url string, data []byte, headers map[string]string) ([]byte, error) {
 	client := &http.Client{}
 
-	req, err := http.NewRequest("POST", url, strings.NewReader(string(msg)))
+	req, err := http.NewRequest("POST", url, strings.NewReader(string(data)))
 	if err != nil {
 		return nil, err
 	}
