@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/QWERKael/utility-go/path"
@@ -24,7 +25,7 @@ type SSH struct {
 func getAuthMethodByPrivateKey(privateKey []byte) (ssh.AuthMethod, error) {
 	signer, err := ssh.ParsePrivateKey(privateKey)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("解析私钥失败：%s", err.Error()))
 	}
 	return ssh.PublicKeys(signer), nil
 }
@@ -42,7 +43,7 @@ func NewSSHByPrivateKey(host string, user string, port int, privateKey []byte) (
 	}
 	am, err := getAuthMethodByPrivateKey(privateKey)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("根据私钥创建AuthMethod失败：%s", err.Error()))
 	}
 	s.Config = &ssh.ClientConfig{
 		Timeout:         time.Second,
@@ -125,15 +126,18 @@ func (s *SSH) WriteRemoteFile(remotePath string, data []byte) error {
 }
 
 func (s *SSH) ReadRemoteFile(remotePath string) ([]byte, error) {
-	f, err := s.SFTPClient.Open(remotePath)
+	if ft, _ := s.CheckRemotePath(remotePath); ft != path.File {
+		return nil, errors.New("指定的文件路径不为文件")
+	}
+	f, err := s.SFTPClient.OpenFile(remotePath, os.O_RDONLY)
 	if err != nil {
 		return nil, err
 	}
-	var data []byte
-	_, err = f.Read(data)
+	var data bytes.Buffer
+	_, err = f.WriteTo(&data)
 	if err != nil {
 		return nil, err
 	}
 	_ = f.Close()
-	return data, nil
+	return data.Bytes(), nil
 }
