@@ -1,11 +1,13 @@
 package log
 
 import (
+	"fmt"
 	"github.com/QWERKael/utility-go/path"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
 	"strings"
+	"time"
 )
 
 type EncoderFormat uint8
@@ -14,6 +16,19 @@ const (
 	ConsoleEncoder EncoderFormat = 0
 	JSONEncoder    EncoderFormat = 1
 )
+
+func InitLogger(logPath, LogLevel string) *zap.SugaredLogger {
+	now := time.Now().Format("2006_01_02_15")
+	if logPath != "" {
+		logPath = fmt.Sprintf("%s.%s", logPath, now)
+	}
+	sugarLogger, err := NewLogger(ConsoleEncoder, logPath, ConvertLogLevel(LogLevel))
+	if err != nil {
+		panic(err.Error())
+	}
+	sugarLogger.Debug("日志记录开始...")
+	return sugarLogger
+}
 
 func NewLogger(encoderFormat EncoderFormat, logFilePath string, level zapcore.Level) (*zap.SugaredLogger, error) {
 	var encoder zapcore.Encoder
