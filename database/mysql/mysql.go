@@ -67,16 +67,16 @@ func (c *Connector) QueryAsMapList(sql string) ([]map[string]interface{}, error)
 	return resultSet, nil
 }
 
-func (c *Connector) QueryAsMapStringList(sql string) ([]map[string]string, error) {
+func (c *Connector) QueryAsMapStringListWithColNames(sql string) ([]map[string]string, []string, error) {
 	rows, err := c.DB.Query(sql)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer rows.Close()
 	var colNames []string
 	colNames, err = rows.Columns()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	var resultSet = make([]map[string]string, 0)
 
@@ -87,14 +87,20 @@ func (c *Connector) QueryAsMapStringList(sql string) ([]map[string]string, error
 			colPtrs[i] = &cols[i]
 		}
 		if err := rows.Scan(colPtrs...); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		result := make(map[string]string)
 		for i, colName := range colNames {
 			v := colPtrs[i].(*interface{})
-			result[colName] = fmt.Sprintf("%s", *v)
+			switch {
+			case *v == nil:
+				result[colName] = "NULL"
+				continue
+			default:
+				result[colName] = fmt.Sprintf("%s", *v)
+			}
 		}
 		resultSet = append(resultSet, result)
 	}
-	return resultSet, nil
+	return resultSet, colNames, nil
 }
