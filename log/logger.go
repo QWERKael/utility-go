@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var SugarLogger *zap.SugaredLogger
+
 type EncoderFormat uint8
 
 const (
@@ -26,6 +28,7 @@ func InitLogger(logPath, LogLevel string) *zap.SugaredLogger {
 	if err != nil {
 		panic(err.Error())
 	}
+	SugarLogger = sugarLogger
 	sugarLogger.Debug("日志记录开始...")
 	return sugarLogger
 }
