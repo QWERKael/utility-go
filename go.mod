@@ -2,6 +2,8 @@ module github.com/QWERKael/utility-go
 
 go 1.15
 
+replace layeh.com/gopher-luar => github.com/layeh/gopher-luar v1.0.10
+
 require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
@@ -19,4 +21,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/ini.v1 v1.66.2
 	gopkg.in/yaml.v2 v2.4.0
+	layeh.com/gopher-luar v0.0.0-00010101000000-000000000000
 )

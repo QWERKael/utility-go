@@ -56,7 +56,7 @@ _G.package.config = [[/
 	return nil
 }
 
-func (lvm *LuaVM) ExecuteLuaScriptWithArgsResult(scriptPath string, luaFuncName string, args ...lua.LValue) (lua.LValue, error) {
+func (lvm *LuaVM) ExecuteLuaScriptWithArgsAndMultiResult(scriptPath string, luaFuncName string, NRet int, args ...lua.LValue) ([]lua.LValue, error) {
 	//执行脚本
 	if err := lvm.L.DoFile(scriptPath); err != nil {
 		return nil, err
@@ -66,17 +66,21 @@ func (lvm *LuaVM) ExecuteLuaScriptWithArgsResult(scriptPath string, luaFuncName 
 	luaFunc := lvm.L.GetGlobal(luaFuncName)
 	if luaFunc.Type() != lua.LTFunction {
 		log.SugarLogger.Debug("未获取到result函数！")
-		return lua.LString("没有返回值！"), nil
+		return nil, nil
 	}
 	log.SugarLogger.Debugf("执行lua脚本【%s】的【%s】函数，参数为：%#v", scriptPath, luaFuncName, args)
 	if err := lvm.L.CallByParam(lua.P{
 		Fn:      luaFunc,
-		NRet:    1,
+		NRet:    NRet,
 		Protect: true,
 	}, args...); err != nil {
 		return nil, err
 	}
-	rst := lvm.L.Get(-1) // returned value
-	lvm.L.Pop(1)         // remove received value
+	rst := make([]lua.LValue, NRet)
+	for i := NRet; i > 0; {
+		i--
+		rst[i] = lvm.L.Get(-1) // returned value
+		lvm.L.Pop(1)           // remove received value
+	}
 	return rst, nil
 }
