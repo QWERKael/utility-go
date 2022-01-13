@@ -1,6 +1,7 @@
 package golua
 
 import (
+	"fmt"
 	"github.com/QWERKael/utility-go/log"
 	lua "github.com/yuin/gopher-lua"
 )
@@ -30,6 +31,26 @@ func (lvm *LuaVM) Exec(command string) error {
 func (lvm *LuaVM) Run(scriptPath string) error {
 	err := lvm.L.DoFile(scriptPath)
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (lvm *LuaVM) SetLuaPackagePath(path string) error {
+	doCode := fmt.Sprintf(`
+-- 将Lua的包地址加载到Lua虚拟机的系统变量中
+package.path = "%s;"..package.path
+-- 设置package.config值
+_G.package.config = [[/
+;
+?
+!
+-
+]]
+`, path)
+
+	log.SugarLogger.Debug("Lua预执行命令： ", doCode)
+	if err := lvm.L.DoString(doCode); err != nil {
 		return err
 	}
 	return nil
