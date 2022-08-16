@@ -15,7 +15,6 @@ type SSH struct {
 	Host       string
 	User       string
 	Port       int
-	privateKey []byte
 	Config     *ssh.ClientConfig
 	Client     *ssh.Client
 	Session    *ssh.Session
@@ -30,20 +29,28 @@ func getAuthMethodByPrivateKey(privateKey []byte) (ssh.AuthMethod, error) {
 	return ssh.PublicKeys(signer), nil
 }
 
+func NewSSHByPassword(host string, user string, port int, password string) (*SSH, error) {
+	am := ssh.Password(password)
+	return NewSSHByAuthMethod(host, user, port, am)
+}
+
 func NewSSHByPrivateKey(host string, user string, port int, privateKey []byte) (*SSH, error) {
+	am, err := getAuthMethodByPrivateKey(privateKey)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("根据私钥创建AuthMethod失败：%s", err.Error()))
+	}
+	return NewSSHByAuthMethod(host, user, port, am)
+}
+
+func NewSSHByAuthMethod(host string, user string, port int, am ssh.AuthMethod) (*SSH, error) {
 	s := &SSH{
 		Host:       host,
 		User:       user,
 		Port:       port,
-		privateKey: privateKey,
 		Config:     nil,
 		Client:     nil,
 		Session:    nil,
 		SFTPClient: nil,
-	}
-	am, err := getAuthMethodByPrivateKey(privateKey)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("根据私钥创建AuthMethod失败：%s", err.Error()))
 	}
 	s.Config = &ssh.ClientConfig{
 		Timeout:         time.Second,
@@ -54,6 +61,7 @@ func NewSSHByPrivateKey(host string, user string, port int, privateKey []byte) (
 
 	//dial 获取ssh client
 	addr := fmt.Sprintf("%s:%d", host, port)
+	var err error
 	s.Client, err = ssh.Dial("tcp", addr, s.Config)
 	if err != nil {
 		return nil, err
