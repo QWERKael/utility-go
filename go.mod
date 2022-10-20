@@ -5,6 +5,7 @@ go 1.15
 replace layeh.com/gopher-luar => github.com/layeh/gopher-luar v1.0.10
 
 require (
+	github.com/BurntSushi/toml v0.3.1
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/json-iterator/go v1.1.10
