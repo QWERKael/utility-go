@@ -58,6 +58,7 @@ func Request(method string, url string, headers map[string]string, urlQuery map[
 		q.Set(queryKey, queryValue)
 	}
 	req.URL.RawQuery = q.Encode()
+	uri := req.RequestURI
 	// 执行 request
 	var resp *http.Response
 	resp, err = client.Do(req)
@@ -71,5 +72,5 @@ func Request(method string, url string, headers map[string]string, urlQuery map[
 	if err != nil {
 		return errStatusCode, nil, "", err
 	}
-	return resp.StatusCode, body, req.RequestURI, nil
+	return resp.StatusCode, body, uri, nil
 }
