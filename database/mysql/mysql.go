@@ -3,6 +3,7 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+	"github.com/QWERKael/utility-go/log"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -29,9 +30,14 @@ func NewConnector(ci *ConnectInfo) (*Connector, error) {
 }
 
 func (c *Connector) Connect(userName string, password string, network string, host string, port int, database string) error {
-	connectString := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", userName, password, network, host, port, database)
+	dsn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", userName, password, network, host, port, database)
+	return c.ConnectWithDSN(dsn)
+}
+
+func (c *Connector) ConnectWithDSN(dsn string) error {
+	log.SugarLogger.Debugf("连接到【%s】", dsn)
 	var err error
-	c.DB, err = sql.Open("mysql", connectString)
+	c.DB, err = sql.Open("mysql", dsn)
 	return err
 }
 
