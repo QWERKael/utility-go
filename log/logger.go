@@ -57,6 +57,7 @@ func NewLogger(encoderFormat EncoderFormat, logFilePath string, level zapcore.Le
 			MaxAge:     maxAge,      // 保留旧文件的最大天数
 			MaxBackups: maxBackups,  // 保留旧文件的最大个数
 			Compress:   false,       // 是否压缩/归档旧文件
+			LocalTime:  true,        // 使用本地时间
 		}
 		writeSyncer = zapcore.AddSync(lumberJackLogger)
 	}
