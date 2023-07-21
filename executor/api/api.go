@@ -41,12 +41,12 @@ func ReTryRequest(f func(args ...interface{}) (int, []byte, error), reTryTimes i
 	}
 }
 
-func Request(method string, url string, headers map[string]string, urlQuery map[string]string, data []byte) (int, []byte, string, error) {
+func Request(method string, url string, headers map[string]string, urlQuery map[string]string, data []byte) (int, []byte, *http.Request, error) {
 	client := &http.Client{}
 	// 创建新的 request
 	req, err := http.NewRequest(method, url, strings.NewReader(string(data)))
 	if err != nil {
-		return errStatusCode, nil, "", err
+		return errStatusCode, nil, nil, err
 	}
 	// 添加 header
 	for key, value := range headers {
@@ -58,19 +58,18 @@ func Request(method string, url string, headers map[string]string, urlQuery map[
 		q.Set(queryKey, queryValue)
 	}
 	req.URL.RawQuery = q.Encode()
-	reqURL := req.URL.String()
 	// 执行 request
 	var resp *http.Response
 	resp, err = client.Do(req)
 	if err != nil {
-		return errStatusCode, nil, "", err
+		return errStatusCode, nil, nil, err
 	}
 	defer resp.Body.Close()
 	// 返回结果
 	var body []byte
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errStatusCode, nil, "", err
+		return errStatusCode, nil, nil, err
 	}
-	return resp.StatusCode, body, reqURL, nil
+	return resp.StatusCode, body, req, nil
 }
