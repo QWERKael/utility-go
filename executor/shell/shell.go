@@ -9,10 +9,11 @@ import (
 type CommandStatus uint8
 
 const (
-	Null       CommandStatus = 0 // 未设置命令
-	Prepare    CommandStatus = 1 // 已设置命令，未执行
-	Done       CommandStatus = 2 // 执行完成，不允许再次执行
-	Repeatable CommandStatus = 3 // 可重复执行的命令
+	Null       CommandStatus = iota // 未设置命令
+	Prepare                         // 已设置命令，未执行
+	Done                            // 执行完成，不允许再次执行
+	Repeatable                      // 可重复执行的命令
+	Running                         // 执行中
 )
 
 type ShCommand struct {
@@ -48,4 +49,13 @@ func (sc *ShCommand) Execute() (bytes.Buffer, bytes.Buffer, error) {
 	err := sc.Cmd.Run()
 	sc.Status = Done
 	return stdout, stderr, err
+}
+
+func (sc *ShCommand) AsyncExecuteWithoutOutput() error {
+	if sc.Status != Prepare && sc.Status != Repeatable {
+		return errors.New("ShCommand的状态不正确")
+	}
+	err := sc.Cmd.Start()
+	sc.Status = Running
+	return err
 }
