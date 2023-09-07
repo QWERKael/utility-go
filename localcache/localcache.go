@@ -6,8 +6,9 @@ import (
 )
 
 type CachedValue[V any] struct {
-	Expired time.Time
-	Value   V
+	Expired        time.Time
+	WithoutExpired bool
+	Value          V
 }
 
 // LocalCache 线程安全的本地缓存
@@ -31,7 +32,9 @@ func (c *LocalCache[K, V]) Get(key K) (value V, ok bool) {
 	if !ok {
 		return value, false
 	}
-	if v.Expired.Before(time.Now()) {
+	if v.WithoutExpired {
+		return v.Value, true
+	} else if v.Expired.Before(time.Now()) {
 		delete(c.cache, key)
 		return value, false
 	}
@@ -42,7 +45,20 @@ func (c *LocalCache[K, V]) Get(key K) (value V, ok bool) {
 func (c *LocalCache[K, V]) Set(key K, value V, expiration time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.cache[key] = CachedValue[V]{Expired: time.Now().Add(expiration), Value: value}
+	if expiration > 0 {
+		c.cache[key] = CachedValue[V]{Expired: time.Now().Add(expiration), WithoutExpired: false, Value: value}
+	} else {
+		c.cache[key] = CachedValue[V]{Expired: time.Time{}, WithoutExpired: true, Value: value}
+	}
+	return
+}
+
+// SetWithExpiredTime 在缓存中设置一个值，过期时间为指定的过期时间点
+func (c *LocalCache[K, V]) SetWithExpiredTime(key K, value V, expiredTime time.Time) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cache[key] = CachedValue[V]{Expired: expiredTime, WithoutExpired: false, Value: value}
+	return
 }
 
 // Delete 从缓存中删除一个值
