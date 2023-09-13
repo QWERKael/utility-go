@@ -67,3 +67,16 @@ func (c *LocalCache[K, V]) Delete(key K) {
 	defer c.mu.Unlock()
 	delete(c.cache, key)
 }
+
+// Keys 列出缓存中素有的key
+func (c *LocalCache[K, V]) Keys() []K {
+	i := 0
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	keys := make([]K, len(c.cache))
+	for k := range c.cache {
+		keys[i] = k
+		i++
+	}
+	return keys
+}
