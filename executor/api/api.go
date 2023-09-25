@@ -5,23 +5,39 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // 表示请求未成功的状态码
 var errStatusCode = 0
 
 func Get(url string, headers map[string]string, urlQuery map[string]string) (int, []byte, error) {
-	code, body, _, err := Request(http.MethodGet, url, headers, urlQuery, nil)
+	code, body, _, err := Request(http.MethodGet, url, headers, urlQuery, nil, 0)
 	return code, body, err
 }
 
 func Post(url string, headers map[string]string, urlQuery map[string]string, data []byte) (int, []byte, error) {
-	code, body, _, err := Request(http.MethodPost, url, headers, urlQuery, data)
+	code, body, _, err := Request(http.MethodPost, url, headers, urlQuery, data, 0)
 	return code, body, err
 }
 
 func Put(url string, headers map[string]string, urlQuery map[string]string, data []byte) (int, []byte, error) {
-	code, body, _, err := Request(http.MethodPut, url, headers, urlQuery, data)
+	code, body, _, err := Request(http.MethodPut, url, headers, urlQuery, data, 0)
+	return code, body, err
+}
+
+func GetWithTimeout(url string, headers map[string]string, urlQuery map[string]string, timeout time.Duration) (int, []byte, error) {
+	code, body, _, err := Request(http.MethodGet, url, headers, urlQuery, nil, timeout)
+	return code, body, err
+}
+
+func PostWithTimeout(url string, headers map[string]string, urlQuery map[string]string, data []byte, timeout time.Duration) (int, []byte, error) {
+	code, body, _, err := Request(http.MethodPost, url, headers, urlQuery, data, timeout)
+	return code, body, err
+}
+
+func PutWithTimeout(url string, headers map[string]string, urlQuery map[string]string, data []byte, timeout time.Duration) (int, []byte, error) {
+	code, body, _, err := Request(http.MethodPut, url, headers, urlQuery, data, timeout)
 	return code, body, err
 }
 
@@ -41,8 +57,11 @@ func ReTryRequest(f func(args ...interface{}) (int, []byte, error), reTryTimes i
 	}
 }
 
-func Request(method string, url string, headers map[string]string, urlQuery map[string]string, data []byte) (int, []byte, *http.Request, error) {
+func Request(method string, url string, headers map[string]string, urlQuery map[string]string, data []byte, timeout time.Duration) (int, []byte, *http.Request, error) {
 	client := &http.Client{}
+	if timeout != 0 {
+		client.Timeout = timeout
+	}
 	// 创建新的 request
 	req, err := http.NewRequest(method, url, strings.NewReader(string(data)))
 	if err != nil {
