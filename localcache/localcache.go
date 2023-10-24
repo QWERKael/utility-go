@@ -40,6 +40,12 @@ func (c *CachedValue[V]) Get() (value V) {
 	return c.Value
 }
 
+// Expire 强制 CachedValue 过期
+func (c *CachedValue[V]) Expire() {
+	c.WithExpired = true
+	c.Expired = time.Unix(0, 0)
+}
+
 // LocalCache 线程安全的本地缓存
 type LocalCache[K comparable, V any] struct {
 	mu    sync.RWMutex
