@@ -6,9 +6,38 @@ import (
 )
 
 type CachedValue[V any] struct {
-	Expired        time.Time
-	WithoutExpired bool
-	Value          V
+	Expired     time.Time
+	WithExpired bool
+	Value       V
+}
+
+func NewCachedValue[V any](value V, expiration time.Duration) CachedValue[V] {
+	if expiration > 0 {
+		return CachedValue[V]{Expired: time.Now().Add(expiration), WithExpired: true, Value: value}
+	} else {
+		return CachedValue[V]{Expired: time.Time{}, WithExpired: false, Value: value}
+	}
+}
+
+func NewCachedValueWithExpiredTime[V any](value V, expiredTime time.Time) CachedValue[V] {
+	return CachedValue[V]{Expired: expiredTime, WithExpired: true, Value: value}
+}
+func NewCachedValueWithoutExpiredTime[V any](value V) CachedValue[V] {
+	return CachedValue[V]{Expired: time.Time{}, WithExpired: false, Value: value}
+}
+
+func (c *CachedValue[V]) IsExpired() bool {
+	if c.WithExpired && c.Expired.Before(time.Now()) {
+		return true
+	}
+	return false
+}
+
+func (c *CachedValue[V]) Get() (value V) {
+	if c.IsExpired() {
+		return value
+	}
+	return c.Value
 }
 
 // LocalCache 线程安全的本地缓存
@@ -32,9 +61,7 @@ func (c *LocalCache[K, V]) Get(key K) (value V, ok bool) {
 	if !ok {
 		return value, false
 	}
-	if v.WithoutExpired {
-		return v.Value, true
-	} else if v.Expired.Before(time.Now()) {
+	if v.IsExpired() {
 		delete(c.cache, key)
 		return value, false
 	}
@@ -45,11 +72,7 @@ func (c *LocalCache[K, V]) Get(key K) (value V, ok bool) {
 func (c *LocalCache[K, V]) Set(key K, value V, expiration time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if expiration > 0 {
-		c.cache[key] = CachedValue[V]{Expired: time.Now().Add(expiration), WithoutExpired: false, Value: value}
-	} else {
-		c.cache[key] = CachedValue[V]{Expired: time.Time{}, WithoutExpired: true, Value: value}
-	}
+	c.cache[key] = NewCachedValue[V](value, expiration)
 	return
 }
 
@@ -57,7 +80,15 @@ func (c *LocalCache[K, V]) Set(key K, value V, expiration time.Duration) {
 func (c *LocalCache[K, V]) SetWithExpiredTime(key K, value V, expiredTime time.Time) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.cache[key] = CachedValue[V]{Expired: expiredTime, WithoutExpired: false, Value: value}
+	c.cache[key] = NewCachedValueWithExpiredTime[V](value, expiredTime)
+	return
+}
+
+// SetWithoutExpiredTime 在缓存中设置一个值，不设置过期时间
+func (c *LocalCache[K, V]) SetWithoutExpiredTime(key K, value V) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cache[key] = NewCachedValueWithoutExpiredTime[V](value)
 	return
 }
 
@@ -74,7 +105,7 @@ func (c *LocalCache[K, V]) Keys() []K {
 	defer c.mu.RUnlock()
 	keys := make([]K, 0)
 	for key, value := range c.cache {
-		if !value.WithoutExpired && value.Expired.Before(time.Now()) {
+		if value.IsExpired() {
 			// 如果有过期时间，并且已过期，则删除key
 			delete(c.cache, key)
 		} else {
@@ -83,4 +114,21 @@ func (c *LocalCache[K, V]) Keys() []K {
 		}
 	}
 	return keys
+}
+
+// Values 列出缓存中素有的value
+func (c *LocalCache[K, V]) Values() []V {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	values := make([]V, 0)
+	for key, cachedValue := range c.cache {
+		if cachedValue.IsExpired() {
+			// 如果有过期时间，并且已过期，则删除key
+			delete(c.cache, key)
+		} else {
+			// 否则，记录key
+			values = append(values, cachedValue.Value)
+		}
+	}
+	return values
 }
