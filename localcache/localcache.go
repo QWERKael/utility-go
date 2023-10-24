@@ -74,9 +74,15 @@ func (c *LocalCache[K, V]) Keys() []K {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	keys := make([]K, len(c.cache))
-	for k := range c.cache {
-		keys[i] = k
-		i++
+	for key, value := range c.cache {
+		if !value.WithoutExpired && value.Expired.Before(time.Now()) {
+			// 如果有过期时间，并且已过期，则删除key
+			delete(c.cache, key)
+		} else {
+			// 否则，记录key
+			keys[i] = key
+			i++
+		}
 	}
 	return keys
 }
