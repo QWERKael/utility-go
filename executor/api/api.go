@@ -12,32 +12,32 @@ import (
 var errStatusCode = 0
 
 func Get(url string, headers map[string]string, urlQuery map[string]string) (int, []byte, error) {
-	code, body, _, err := Request(http.MethodGet, url, headers, urlQuery, nil, 0)
+	code, body, _, err := Request(http.MethodGet, url, headers, urlQuery, nil)
 	return code, body, err
 }
 
 func Post(url string, headers map[string]string, urlQuery map[string]string, data []byte) (int, []byte, error) {
-	code, body, _, err := Request(http.MethodPost, url, headers, urlQuery, data, 0)
+	code, body, _, err := Request(http.MethodPost, url, headers, urlQuery, data)
 	return code, body, err
 }
 
 func Put(url string, headers map[string]string, urlQuery map[string]string, data []byte) (int, []byte, error) {
-	code, body, _, err := Request(http.MethodPut, url, headers, urlQuery, data, 0)
+	code, body, _, err := Request(http.MethodPut, url, headers, urlQuery, data)
 	return code, body, err
 }
 
 func GetWithTimeout(url string, headers map[string]string, urlQuery map[string]string, timeout time.Duration) (int, []byte, error) {
-	code, body, _, err := Request(http.MethodGet, url, headers, urlQuery, nil, timeout)
+	code, body, _, err := RequestWithTimeout(http.MethodGet, url, headers, urlQuery, nil, timeout)
 	return code, body, err
 }
 
 func PostWithTimeout(url string, headers map[string]string, urlQuery map[string]string, data []byte, timeout time.Duration) (int, []byte, error) {
-	code, body, _, err := Request(http.MethodPost, url, headers, urlQuery, data, timeout)
+	code, body, _, err := RequestWithTimeout(http.MethodPost, url, headers, urlQuery, data, timeout)
 	return code, body, err
 }
 
 func PutWithTimeout(url string, headers map[string]string, urlQuery map[string]string, data []byte, timeout time.Duration) (int, []byte, error) {
-	code, body, _, err := Request(http.MethodPut, url, headers, urlQuery, data, timeout)
+	code, body, _, err := RequestWithTimeout(http.MethodPut, url, headers, urlQuery, data, timeout)
 	return code, body, err
 }
 
@@ -56,8 +56,11 @@ func ReTryRequest(f func(args ...interface{}) (int, []byte, error), reTryTimes i
 		return errStatusCode, nil, errors.New("重试失败")
 	}
 }
+func Request(method string, url string, headers map[string]string, urlQuery map[string]string, data []byte) (int, []byte, *http.Request, error) {
+	return RequestWithTimeout(method, url, headers, urlQuery, data, 0)
+}
 
-func Request(method string, url string, headers map[string]string, urlQuery map[string]string, data []byte, timeout time.Duration) (int, []byte, *http.Request, error) {
+func RequestWithTimeout(method string, url string, headers map[string]string, urlQuery map[string]string, data []byte, timeout time.Duration) (int, []byte, *http.Request, error) {
 	client := &http.Client{}
 	if timeout != 0 {
 		client.Timeout = timeout
