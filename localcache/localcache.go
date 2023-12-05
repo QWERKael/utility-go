@@ -48,7 +48,7 @@ func (c *CachedValue[V]) Expire() {
 
 // LocalCache 线程安全的本地缓存
 type LocalCache[K comparable, V any] struct {
-	mu    sync.RWMutex
+	mu    sync.Mutex
 	cache map[K]CachedValue[V]
 }
 
@@ -61,8 +61,8 @@ func NewLocalCache[K comparable, V any]() *LocalCache[K, V] {
 
 // Get 从缓存中获取一个值
 func (c *LocalCache[K, V]) Get(key K) (value V, ok bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	v, ok := c.cache[key]
 	if !ok {
 		return value, false
@@ -107,8 +107,8 @@ func (c *LocalCache[K, V]) Delete(key K) {
 
 // Keys 列出缓存中素有的key
 func (c *LocalCache[K, V]) Keys() []K {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	keys := make([]K, 0)
 	for key, value := range c.cache {
 		if value.IsExpired() {
@@ -124,8 +124,8 @@ func (c *LocalCache[K, V]) Keys() []K {
 
 // Values 列出缓存中素有的value
 func (c *LocalCache[K, V]) Values() []V {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	values := make([]V, 0)
 	for key, cachedValue := range c.cache {
 		if cachedValue.IsExpired() {
