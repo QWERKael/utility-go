@@ -48,7 +48,7 @@ func (c *CachedValue[V]) Expire() {
 
 // LocalCache 线程安全的本地缓存
 type LocalCache[K comparable, V any] struct {
-	mu    sync.Mutex
+	mu    sync.RWMutex
 	cache map[K]CachedValue[V]
 }
 
@@ -61,16 +61,21 @@ func NewLocalCache[K comparable, V any]() *LocalCache[K, V] {
 
 // Get 从缓存中获取一个值
 func (c *LocalCache[K, V]) Get(key K) (value V, ok bool) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
 	v, ok := c.cache[key]
 	if !ok {
+		c.mu.RUnlock()
 		return value, false
 	}
 	if v.IsExpired() {
-		delete(c.cache, key)
+		c.mu.RUnlock()
+		if c.mu.TryLock() {
+			defer c.mu.Unlock()
+			delete(c.cache, key)
+		}
 		return value, false
 	}
+	c.mu.RUnlock()
 	return v.Value, true
 }
 
@@ -107,8 +112,8 @@ func (c *LocalCache[K, V]) Delete(key K) {
 
 // Keys 列出缓存中素有的key
 func (c *LocalCache[K, V]) Keys() []K {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	keys := make([]K, 0)
 	for key, value := range c.cache {
 		if value.IsExpired() {
@@ -124,8 +129,8 @@ func (c *LocalCache[K, V]) Keys() []K {
 
 // Values 列出缓存中素有的value
 func (c *LocalCache[K, V]) Values() []V {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	values := make([]V, 0)
 	for key, cachedValue := range c.cache {
 		if cachedValue.IsExpired() {
