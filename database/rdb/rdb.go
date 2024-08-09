@@ -39,7 +39,7 @@ type JsonWrapper[T any] struct {
 }
 
 func NewJsonWrapper[T any](t T) JsonWrapper[T] {
-	return JsonWrapper[T]{inner: t}
+	return JsonWrapper[T]{Inner: t}
 }
 
 func (j *JsonWrapper[T]) Scan(src interface{}) error {
