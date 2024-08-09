@@ -35,7 +35,7 @@ func CommonFromJson[T any](t T, s string) error {
 }
 
 type JsonWrapper[T any] struct {
-	inner T
+	Inner T
 }
 
 func NewJsonWrapper[T any](t T) JsonWrapper[T] {
@@ -62,9 +62,9 @@ func (j *JsonWrapper[T]) Scan(src interface{}) error {
 	default:
 		return fmt.Errorf("不支持的类型")
 	}
-	return CommonFromJson(&j.inner, source)
+	return CommonFromJson(&j.Inner, source)
 }
 
 func (j JsonWrapper[T]) Value() (driver.Value, error) {
-	return CommonToJson(j.inner)
+	return CommonToJson(j.Inner)
 }
