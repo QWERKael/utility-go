@@ -69,9 +69,17 @@ func (j JsonWrapper[T]) Value() (driver.Value, error) {
 	return CommonToJson(j.Inner)
 }
 
-type Enum interface {
+type EnumTo interface {
 	ToString() (string, error)
+}
+
+type EnumFrom interface {
 	FromString(string) error
+}
+
+type Enum interface {
+	EnumTo
+	EnumFrom
 }
 
 type EnumWrapper[T Enum] struct {
