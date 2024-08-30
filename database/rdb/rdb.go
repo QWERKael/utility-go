@@ -68,3 +68,43 @@ func (j *JsonWrapper[T]) Scan(src interface{}) error {
 func (j JsonWrapper[T]) Value() (driver.Value, error) {
 	return CommonToJson(j.Inner)
 }
+
+type Enum interface {
+	ToString() (string, error)
+	FromString(string) error
+}
+
+type EnumWrapper[T Enum] struct {
+	Inner T
+}
+
+func NewEnumWrapper[T Enum](t T) EnumWrapper[T] {
+	return EnumWrapper[T]{Inner: t}
+}
+
+func (j *EnumWrapper[T]) Scan(src interface{}) error {
+	if src == nil {
+		*j = EnumWrapper[T]{}
+		return nil
+	}
+	var source string
+	switch t := src.(type) {
+	case string:
+		source = t
+	case []byte:
+		if len(t) == 0 {
+			source = ""
+		} else {
+			source = string(t)
+		}
+	case nil:
+		source = ""
+	default:
+		return fmt.Errorf("不支持的类型")
+	}
+	return j.Inner.FromString(source)
+}
+
+func (j EnumWrapper[T]) Value() (driver.Value, error) {
+	return j.Inner.ToString()
+}
