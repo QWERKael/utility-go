@@ -69,24 +69,16 @@ func (j JsonWrapper[T]) Value() (driver.Value, error) {
 	return CommonToJson(j.Inner)
 }
 
-type EnumTo interface {
+type Enum[T any] interface {
 	ToString() (string, error)
+	FromString(string) (T, error)
 }
 
-type EnumFrom interface {
-	FromString(string) error
-}
-
-type Enum interface {
-	EnumTo
-	EnumFrom
-}
-
-type EnumWrapper[T Enum] struct {
+type EnumWrapper[T Enum[T]] struct {
 	Inner T
 }
 
-func NewEnumWrapper[T Enum](t T) EnumWrapper[T] {
+func NewEnumWrapper[T Enum[T]](t T) EnumWrapper[T] {
 	return EnumWrapper[T]{Inner: t}
 }
 
@@ -110,7 +102,12 @@ func (j *EnumWrapper[T]) Scan(src interface{}) error {
 	default:
 		return fmt.Errorf("不支持的类型")
 	}
-	return j.Inner.FromString(source)
+	s, err := j.Inner.FromString(source)
+	if err != nil {
+		return err
+	}
+	*j = EnumWrapper[T]{Inner: s}
+	return nil
 }
 
 func (j EnumWrapper[T]) Value() (driver.Value, error) {
