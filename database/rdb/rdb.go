@@ -70,8 +70,8 @@ func (j JsonWrapper[T]) Value() (driver.Value, error) {
 }
 
 type Enum[T any] interface {
-	ToString() (string, error)
-	FromString(string) (T, error)
+	ToString() string
+	FromString(string) T
 }
 
 type EnumWrapper[T Enum[T]] struct {
@@ -102,14 +102,10 @@ func (j *EnumWrapper[T]) Scan(src interface{}) error {
 	default:
 		return fmt.Errorf("不支持的类型")
 	}
-	s, err := j.Inner.FromString(source)
-	if err != nil {
-		return err
-	}
-	*j = EnumWrapper[T]{Inner: s}
+	*j = EnumWrapper[T]{Inner: j.Inner.FromString(source)}
 	return nil
 }
 
 func (j EnumWrapper[T]) Value() (driver.Value, error) {
-	return j.Inner.ToString()
+	return j.Inner.ToString(), nil
 }
