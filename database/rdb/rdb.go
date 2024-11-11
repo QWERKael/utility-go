@@ -69,6 +69,14 @@ func (j JsonWrapper[T]) Value() (driver.Value, error) {
 	return CommonToJson(j.Inner)
 }
 
+func (j JsonWrapper[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(j.Inner)
+}
+
+func (j *JsonWrapper[T]) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &j.Inner)
+}
+
 type Enum[T any] interface {
 	ToString() string
 	FromString(string) T
@@ -108,4 +116,18 @@ func (j *EnumWrapper[T]) Scan(src interface{}) error {
 
 func (j EnumWrapper[T]) Value() (driver.Value, error) {
 	return j.Inner.ToString(), nil
+}
+
+func (j EnumWrapper[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(j.Inner.ToString())
+}
+
+func (j *EnumWrapper[T]) UnmarshalJSON(data []byte) error {
+	var source string
+	err := json.Unmarshal(data, &source)
+	if err != nil {
+		return err
+	}
+	*j = EnumWrapper[T]{Inner: j.Inner.FromString(source)}
+	return nil
 }
