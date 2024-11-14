@@ -128,3 +128,5 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# 忽略测试文件
+*_test.go
