@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"fmt"
-	"github.com/QWERKael/utility-go/log"
 	"github.com/go-mysql-org/go-mysql/client"
 )
 
@@ -11,9 +10,10 @@ type Connector struct {
 }
 
 func Connect(userName string, password string, host string, port int, database string) (Connector, error) {
-	conn, err := client.Connect(fmt.Sprintf("%s:%d", host, port), userName, password, database, nil)
+	conn, err := client.Connect(fmt.Sprintf("%s:%d", host, port), userName, password, database, func(c *client.Conn) error {
+		return nil
+	})
 	if err != nil {
-		log.SugarLogger.Debugf("连接到【%s:%d】失败", host, port)
 		return Connector{}, err
 	}
 	return Connector{DB: conn}, nil
