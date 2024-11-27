@@ -64,7 +64,7 @@ func NewLogger(encoderFormat EncoderFormat, logFilePath string, level zapcore.Le
 
 	core := zapcore.NewCore(encoder, writeSyncer, level)
 
-	logger := zap.New(core, zap.AddCaller())
+	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.WarnLevel))
 	sugarLogger := logger.Sugar()
 	return sugarLogger, nil
 }
